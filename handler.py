@@ -42,7 +42,7 @@ def getNextTestItem(event, context):
       responses = body['visitedItemResponses']
 
     # fetch testItemsMap (super set) from json
-    with open('./src/testItemsDataMap.json') as f:
+    with open('./src/testItemsData.json') as f:
       testItemsMap = json.load(f)
 
     # testItems: curate testItems subset from testItemsMap using testItemIds

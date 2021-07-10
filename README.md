@@ -52,7 +52,7 @@ A simple serverless implementation to get the next item in adaptive test
     npm run start:offline
     ```
 
-6. With the app running, you can now call the following endpoints:
+5. With the app running, you can now call the following endpoints:
   
     i. **`get-next-test-item`** [📎](http://localhost:5000/development/get-next-test-item)
 

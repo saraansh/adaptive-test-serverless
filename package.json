@@ -1,0 +1,12 @@
+{
+    "name": "edulasticv2-scanner",
+    "description": "",
+    "version": "0.1.0",
+    "scripts": {
+        "start:offline": "sls offline start --printOutput --httpPort 5000"
+    },
+    "devDependencies": {
+        "serverless": "^2.50.0",
+        "serverless-offline": "^7.0.0"
+    }
+}

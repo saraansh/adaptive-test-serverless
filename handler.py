@@ -18,7 +18,7 @@ SCORE_MUL_FACTOR = {
 
 
 def getNextTestItem(event, context):
-  # print("Request Body: ", event["body"])
+  # print("\n\nRequest Body:\n", event["body"], "\n\n")
   # initialize response object
   response = {
     "headers": {
@@ -96,7 +96,7 @@ def getNextTestItem(event, context):
     # check for stopFlag before calculating next item
     stopFlag = getStopFlag(testItemsArray, visitedItemIndices, currentProficiency, maxVisitedItemsCount)
     if stopFlag == False:
-      nextTestItemIndex = getNextItemIndex(testItemsArray, visitedItemIds, currentProficiency)
+      nextTestItemIndex = getNextItemIndex(testItemsArray, visitedItemIndices, currentProficiency)
       # nextTestItemId: get testItemId for testItemIndex from testItems
       nextTestItemId = testItems[nextTestItemIndex]['testItemId']
       nextItemScore = testItems[nextTestItemIndex]['score']

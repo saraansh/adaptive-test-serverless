@@ -21,6 +21,9 @@ def getEstimatedProficiency (testItemsArray, visitedItemIndices, responses, curr
 def getNextItemIndex (testItemsArray, visitedItemIndices, currentProficiency):
   selector = The54321Selector(test_size=len(testItemsArray))
   testItemIndex = selector.select(items=testItemsArray, administered_items=visitedItemIndices, est_theta=currentProficiency)
+  # ensure no duplicate item is selected
+  while testItemIndex in visitedItemIndices:
+    testItemIndex = selector.select(items=testItemsArray, administered_items=visitedItemIndices, est_theta=currentProficiency)
   return testItemIndex
 
 

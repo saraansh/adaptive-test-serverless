@@ -1,12 +1,12 @@
-{
-  "0": { "testItemId": "0", "score": 1, "difficulty": "Easy" },
-  "1": { "testItemId": "1", "score": 2, "difficulty": "Medium" },
-  "2": { "testItemId": "2", "score": 1, "difficulty": "Easy" },
-  "3": { "testItemId": "3", "score": 3, "difficulty": "Hard" },
-  "4": { "testItemId": "4", "score": 3, "difficulty": "Hard" },
-  "5": { "testItemId": "5", "score": 1, "difficulty": "Easy" },
-  "6": { "testItemId": "6", "score": 2, "difficulty": "Medium" },
-  "7": { "testItemId": "7", "score": 3, "difficulty": "Hard" },
-  "8": { "testItemId": "8", "score": 2, "difficulty": "Medium" },
-  "9": { "testItemId": "9", "score": 1, "difficulty": "Easy" }
-}
+[
+  { "testItemId": "0", "score": 1, "difficulty": "Easy" },
+  { "testItemId": "1", "score": 2, "difficulty": "Medium" },
+  { "testItemId": "2", "score": 1, "difficulty": "Easy" },
+  { "testItemId": "3", "score": 3, "difficulty": "Hard" },
+  { "testItemId": "4", "score": 3, "difficulty": "Hard" },
+  { "testItemId": "5", "score": 1, "difficulty": "Easy" },
+  { "testItemId": "6", "score": 2, "difficulty": "Medium" },
+  { "testItemId": "7", "score": 3, "difficulty": "Hard" },
+  { "testItemId": "8", "score": 2, "difficulty": "Medium" },
+  { "testItemId": "9", "score": 1, "difficulty": "Easy" }
+]

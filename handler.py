@@ -9,6 +9,13 @@ DIFFICULTY_MAP = {
   'Hard': 1
 }
 
+## NOTE: Score multiplication factor (remove if not required)
+SCORE_MUL_FACTOR = {
+  'Easy': 0.25,
+  'Medium': 0.5,
+  'Hard': 1
+}
+
 
 def getNextTestItem(event, context):
   # print("Request Body: ", event["body"])
@@ -30,32 +37,46 @@ def getNextTestItem(event, context):
     return response
 
   try:
-    testItemIds, visitedItemIds, responses = [], [], []
+    # fetch testItemsMap (super set) from json
+    with open('./src/testItemsData.json') as f:
+      rawTestItems = json.load(f)
+      testItems = [
+        {
+          **i,
+          'score': i['score'] * SCORE_MUL_FACTOR[i['difficulty']],
+          'arrayValues': [
+            i['score'] * SCORE_MUL_FACTOR[i['difficulty']],
+            DIFFICULTY_MAP[i['difficulty']],
+            0,
+            1
+          ]
+        } for i in rawTestItems
+      ]
+      testItemIds = [i['testItemId'] for i in testItems]
+    
+    visitedItemIds, responses = [], []
     estimatedProficiency = getInitialProficiency()
     nextTestItemId, nextCorrectProbability = '', None
 
     if 'testItemIds' in body:
       testItemIds = body['testItemIds']
+      if len(testItemIds):
+        # testItems: curate testItems subset using testItemIds from request body
+        testItems = [i for i in testItems if i['testItemId'] in testItemIds]
+    
+    # testItemsArray: generate numpy 2D-array for testItems
+    testItemsArray = np.array([i['arrayValues'] for i in testItems])
+
     if 'visitedItemIds' in body:
       visitedItemIds = body['visitedItemIds']
+      # visitedItemIndices: get indices for visitedItemIds from testItems
+      visitedItemIndices = [i for (i, j) in enumerate(testItems) if j['testItemId'] in visitedItemIds]
+
     if 'visitedItemResponses' in body:
       responses = body['visitedItemResponses']
 
-    # fetch testItemsMap (super set) from json
-    with open('./src/testItemsData.json') as f:
-      testItemsMap = json.load(f)
-
-    # testItems: curate testItems subset from testItemsMap using testItemIds
-    testItems = [
-      { 'testItemId': i,
-        'arrayValues': [testItemsMap[i]['score'], DIFFICULTY_MAP[testItemsMap[i]['difficulty']], 0, 1]
-      } for i in testItemIds
-    ]
-    # testItemsArray: generate numpy 2D-array for testItems subset
-    testItemsArray = np.array([i['arrayValues'] for i in testItems])
-
-    # visitedItemIndices: get indices for visitedItemIds from testItems
-    visitedItemIndices = [next((j for (j, data) in enumerate(testItems) if data['testItemId'] == i), None) for i in visitedItemIds]
+    # currentScore: get the current cumulative score for visitedItems
+    currentScore = sum([testItems[j]['score'] for (i, j) in enumerate(visitedItemIndices) if responses[i] == True])
 
     # update currentProficiency if there are valid visitedItems
     if 'currentProficiency' in body and len(visitedItemIndices):
@@ -73,6 +94,7 @@ def getNextTestItem(event, context):
       nextTestItemIndex = getNextItemIndex(testItemsArray, visitedItemIds, currentProficiency)
       # nextTestItemId: get testItemId for testItemIndex from testItems
       nextTestItemId = testItems[nextTestItemIndex]['testItemId']
+      nextItemScore = testItems[nextTestItemIndex]['score']
       nextTestItemArray = np.array(testItems[nextTestItemIndex]['arrayValues'])
       nextCorrectProbability = getCorrectProbability(nextTestItemArray)
       print(nextTestItemId, nextTestItemArray, nextCorrectProbability)
@@ -82,8 +104,10 @@ def getNextTestItem(event, context):
       "statusCode": 200,
       "body": json.dumps({
         "testItemId": nextTestItemId,
+        "itemScore": nextItemScore,
         "currentProficiency": estimatedProficiency,
-        "correctProbability": nextCorrectProbability
+        "currentScore": currentScore,
+        # "correctProbability": nextCorrectProbability
       })
     })
     return response

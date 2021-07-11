@@ -18,7 +18,7 @@ SCORE_MUL_FACTOR = {
 
 
 def getNextTestItem(event, context):
-  # print("\n\nRequest Body:\n", event["body"], "\n\n")
+  print("\n\nRequest Body:\n", event["body"], "\n\n")
   # initialize response object
   response = {
     "headers": {

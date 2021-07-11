@@ -25,7 +25,7 @@ def getNextTestItem(event, context):
       "Access-Control-Allow-Origin": "*"
     },
     "statusCode": 500,
-    "body": { json.dumps({ "error": "empty function" }) }
+    "body": json.dumps({ "error": "empty function" })
   }
 
   try:
@@ -82,6 +82,11 @@ def getNextTestItem(event, context):
     if 'currentProficiency' in body and len(visitedItemIndices):
       currentProficiency = body['currentProficiency']
       estimatedProficiency = getEstimatedProficiency(testItemsArray, visitedItemIndices, responses, currentProficiency)
+      if estimatedProficiency == float('inf'):
+        estimatedProficiency = 100
+      elif estimatedProficiency == float('-inf'):
+        estimatedProficiency = -100
+
 
     # get max count for visited items
     maxVisitedItemsCount = len(testItemsArray)
@@ -96,8 +101,7 @@ def getNextTestItem(event, context):
       nextTestItemId = testItems[nextTestItemIndex]['testItemId']
       nextItemScore = testItems[nextTestItemIndex]['score']
       nextTestItemArray = np.array(testItems[nextTestItemIndex]['arrayValues'])
-      nextCorrectProbability = getCorrectProbability(nextTestItemArray)
-      print(nextTestItemId, nextTestItemArray, nextCorrectProbability)
+      # nextCorrectProbability = getCorrectProbability(nextTestItemArray)
       
     # update and return response
     response.update({
@@ -106,8 +110,7 @@ def getNextTestItem(event, context):
         "testItemId": nextTestItemId,
         "itemScore": nextItemScore,
         "currentProficiency": estimatedProficiency,
-        "currentScore": currentScore,
-        # "correctProbability": nextCorrectProbability
+        "currentScore": currentScore
       })
     })
     return response

@@ -11,8 +11,8 @@ DIFFICULTY_MAP = {
 
 ## NOTE: Score multiplication factor (remove if not required)
 SCORE_MUL_FACTOR = {
-  'Easy': 0.25,
-  'Medium': 0.5,
+  'Easy': 1,
+  'Medium': 1,
   'Hard': 1
 }
 

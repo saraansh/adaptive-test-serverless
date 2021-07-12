@@ -18,7 +18,7 @@ SCORE_MUL_FACTOR = {
 
 
 def getNextTestItem(event, context):
-  print("\n\nRequest Body:\n", event["body"], "\n\n")
+  ## print("\n\nRequest Body (event):", event["body"], "\n\n")
   # initialize response object
   response = {
     "headers": {
@@ -31,6 +31,7 @@ def getNextTestItem(event, context):
   try:
     # extract body object from json
     body = json.loads(event["body"])
+    ## print("\n\nRequest Body (parsed):", body, "\n\n")
   except Exception as e:
     print(e)
     response.update({ "body": json.dumps({ "error": "Failed to parse POST data" }) })
@@ -44,6 +45,7 @@ def getNextTestItem(event, context):
         {
           **i,
           'score': i['score'] * SCORE_MUL_FACTOR[i['difficulty']],
+          'difficulty': DIFFICULTY_MAP[i['difficulty']],
           'arrayValues': [
             i['score'] * SCORE_MUL_FACTOR[i['difficulty']],
             DIFFICULTY_MAP[i['difficulty']],
@@ -57,6 +59,11 @@ def getNextTestItem(event, context):
     visitedItemIds, responses = [], []
     estimatedProficiency = getInitialProficiency()
     nextTestItemId, nextCorrectProbability = '', None
+    maxDifficulty, minDifficulty = 1, -1
+    strictMode = False
+
+    if 'strictMode' in body:
+      strictMode = bool(body['strictMode'])
 
     if 'testItemIds' in body:
       testItemIds = body['testItemIds']
@@ -70,7 +77,13 @@ def getNextTestItem(event, context):
     if 'visitedItemIds' in body:
       visitedItemIds = body['visitedItemIds']
       # visitedItemIndices: get indices for visitedItemIds from testItems
-      visitedItemIndices = [i for (i, j) in enumerate(testItems) if j['testItemId'] in visitedItemIds]
+      visitedItemIndices = []
+      for i in visitedItemIds:
+        for j, k in enumerate(testItems):
+          if i == k['testItemId']:
+            visitedItemIndices.append(j)
+      ## visitedItemByIndices = [testItems[i]['testItemId'] for i in visitedItemIndices]
+      ## print('\nvisitedItemIds:', visitedItemIds, '\nvisitedItemIndices:', visitedItemIndices, '\nvisitedItemByIndices:', visitedItemByIndices, '\n')
 
     if 'visitedItemResponses' in body:
       responses = body['visitedItemResponses']
@@ -96,12 +109,27 @@ def getNextTestItem(event, context):
     # check for stopFlag before calculating next item
     stopFlag = getStopFlag(testItemsArray, visitedItemIndices, currentProficiency, maxVisitedItemsCount)
     if stopFlag == False:
+      prevTestItemIndex, prevTestItemResponse = visitedItemIndices[-1], responses[-1]
+      prevTestItem = testItems[prevTestItemIndex]
+      ## print('\nprevTestItem:', prevTestItem, '\n\n')
+      if (prevTestItemResponse and (prevTestItem['difficulty'] < maxDifficulty or strictMode)) or (not prevTestItemResponse and (prevTestItem['difficulty'] == minDifficulty) and not strictMode):
+        acceptableDifficulties = [prevTestItem['difficulty']]
+        if (prevTestItem['difficulty'] + 1 <= maxDifficulty):
+          acceptableDifficulties.append(prevTestItem['difficulty'] + 1)
+        ## print('\n1st', strictMode, acceptableDifficulties)
+      else:
+        acceptableDifficulties = [prevTestItem['difficulty']]
+        if (prevTestItem['difficulty'] - 1 >= minDifficulty):
+          acceptableDifficulties.append(prevTestItem['difficulty'] - 1)
+        ## print('\n2nd', strictMode, acceptableDifficulties)
       nextTestItemIndex = getNextItemIndex(testItemsArray, visitedItemIndices, currentProficiency)
+      while testItems[nextTestItemIndex]['difficulty'] not in acceptableDifficulties:
+        nextTestItemIndex = getNextItemIndex(testItemsArray, visitedItemIndices, currentProficiency)
       # nextTestItemId: get testItemId for testItemIndex from testItems
       nextTestItemId = testItems[nextTestItemIndex]['testItemId']
       nextItemScore = testItems[nextTestItemIndex]['score']
-      nextTestItemArray = np.array(testItems[nextTestItemIndex]['arrayValues'])
-      # nextCorrectProbability = getCorrectProbability(nextTestItemArray)
+      ## nextTestItemArray = np.array(testItems[nextTestItemIndex]['arrayValues'])
+      ## nextCorrectProbability = getCorrectProbability(nextTestItemArray)
       
     # update and return response
     response.update({
@@ -110,7 +138,7 @@ def getNextTestItem(event, context):
         "testItemId": nextTestItemId,
         "itemScore": nextItemScore,
         "currentProficiency": estimatedProficiency,
-        "currentScore": currentScore
+        "currentScore": currentScore,
       })
     })
     return response
